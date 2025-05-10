@@ -25,7 +25,7 @@
 
 ## 📸 Demo
 
-> Live demo coming soon...  
+> [Live Demo](https://passforge-ochre.vercel.app/)  
 > _Or clone & run locally below_
 
 ---
