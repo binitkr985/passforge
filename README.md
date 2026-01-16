@@ -152,7 +152,7 @@ This design avoids misleading or insecure behavior.
 
 ## 🌐 Live Demo
 
-🔗 [https://passforge-ochre.vercel.app/](https://passforge-ochre.vercel.app/)
+🔗 [https://passforge-alpha.vercel.app/](https://passforge-alpha.vercel.app/)
 
 ---
 
