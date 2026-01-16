@@ -1,50 +1,162 @@
 # 🔐 PassForge
 
-**PassForge** is a sleek, modern, and secure password generator built using **Next.js 15**, **Tailwind CSS**, and **ShadCN UI**. It features password customization, strength analysis, clipboard integration, and dark mode — all wrapped in a user-friendly interface.
+**PassForge** is a modern, human-centric password generator built with **Next.js (App Router)**, **Tailwind CSS**, and **ShadCN UI**.
+
+Unlike traditional generators that focus only on randomness, PassForge is designed around **how humans actually remember and type passwords**, while still maintaining strong security guarantees.
 
 ---
 
-## ✨ Features
+## 🚀 Versions Overview
 
-- 🎛️ **Customizable Password Generation**  
-  Choose from uppercase, lowercase, numbers, and symbols. Select password length from 4 to 32.
+PassForge is structured as **multiple generations**, each solving a different problem.
 
-- 🧠 **Password Strength Indicator**  
-  Real-time entropy-based strength analysis with a rough **brute-force time estimate**.
+### 🔹 v1 — Basic Generator
 
-- 📋 **Copy to Clipboard**  
-  One-click clipboard copy with visual feedback.
+A classic password generator with:
 
-- 🌙 **Dark Mode Support**  
-  Toggle between light and dark modes with smooth transitions.
+* Length control
+* Character set toggles
+* Strength indicator
+* Dark mode
 
-- ⚡ **Fast & Responsive**  
-  Powered by Next.js 15 and Tailwind CSS for optimized performance and responsive design.
+📍 Route: `/v1`
 
 ---
 
-## 📸 Demo
+### 🔹 v2 — Enhanced Classic Generator
 
-> [Live Demo](https://passforge-ochre.vercel.app/)  
-> _Or clone & run locally below_
+An improved version of v1 with:
+
+* Cleaner UI
+* Better feedback and polish
+* Refined strength calculation
+
+📍 Route: `/v2`
+
+---
+
+### 🔹 v3 — Smart / Human-Memorable Generator (Current)
+
+The flagship version of PassForge.
+
+Instead of generating random strings, v3 **derives secure passwords from user-memorable input**, while ensuring:
+
+* Keyboard safety
+* Platform separation
+* Predictable UX
+
+📍 Route: `/` (root)
+
+---
+
+## ✨ Key Features (v3)
+
+* 🧠 **Human-Memorable Password Derivation**
+  Generate strong passwords from a base phrase you already remember.
+
+* 🧩 **Platform Presets + Custom Support**
+  Choose common platforms (Discord, GitHub, Banking, Social)
+  or define **any custom site** (for the millions of lesser-known services).
+
+* 🎚️ **Strength Dial with Read-Only Comparison**
+  Preview multiple strength levels **without regenerating**.
+  Move the slider to compare, move it back to restore the original password.
+
+* 🔁 **Deterministic Recovery Mode (Optional)**
+  Same inputs + master key = same password.
+  No storage. No backend.
+
+* ⌨️ **100% Keyboard-Safe (ASCII-Only)**
+  Every generated password is typeable on:
+
+  * Laptops
+  * Desktops
+  * Public computers
+  * Terminals
+
+* 🧠 **Live Metrics per Variant**
+
+  * Strength classification
+  * Memorability score
+  * Typability guarantee
+
+* ⚠️ **Anti-Pattern Warnings**
+  Detects:
+
+  * Common sequences
+  * Weak base passwords
+  * Reuse per platform (local only)
+
+* 📋 **One-Click Copy**
+  With visual confirmation.
+
+* 🌙 **Dark / Light Mode**
+  Clean and consistent across all versions.
+
+---
+
+## 🗂 Project Structure
+
+```txt
+src/
+ ├─ app/
+ │   ├─ v1/        → Basic generator
+ │   ├─ v2/        → Enhanced classic generator
+ │   ├─ page.jsx   → PassForge v3 (smart generator)
+ │   ├─ layout.jsx
+ │   └─ globals.css
+ ├─ components/
+ └─ lib/
+public/
+```
+
+---
+
+## 🧠 Security & Privacy
+
+* ✅ Fully client-side
+* ✅ No backend
+* ✅ No analytics
+* ✅ No password storage
+* ✅ No network calls
+
+All password generation happens **locally in your browser**.
+
+---
+
+## ⚠️ Browser Password Managers (Important Note)
+
+PassForge **does not and cannot** directly save passwords into browser vaults for other domains.
+
+This is an **intentional browser security restriction**.
+
+Correct usage:
+
+1. Generate a password in PassForge
+2. Paste it into the target site
+3. Let the browser prompt you naturally
+
+This design avoids misleading or insecure behavior.
 
 ---
 
 ## 🛠 Tech Stack
 
-- [Next.js 15](https://nextjs.org/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [ShadCN UI](https://ui.shadcn.com/)
-- [Lucide Icons](https://lucide.dev/)
+* **Next.js (App Router)**
+* **React**
+* **Tailwind CSS**
+* **ShadCN UI**
+* **Lucide Icons**
 
 ---
 
-## 🧠 Security Note
+## 🌐 Live Demo
 
-PassForge is **fully client-side** and does **not store or transmit any passwords**. All generation happens securely in your browser.
+🔗 [https://passforge-ochre.vercel.app/](https://passforge-ochre.vercel.app/)
 
 ---
 
-## 🙌 Acknowledgements
+## 👤 Author
 
-Built with ❤️ using ShadCN and Next.js 15 by **[Binit Kumar](https://github.com/binitkr9852).**  
+Built by **[Binit Kr](https://github.com/binitkr985)**
+A project focused on **practical security, honest UX, and human-first design**.

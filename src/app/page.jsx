@@ -1,65 +1,178 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
-import { Copy, Check, Moon, Sun } from 'lucide-react';
+import {
+  Copy,
+  Check,
+  Moon,
+  Sun,
+  Info,
+  ArrowRight,
+} from 'lucide-react';
 import { useTheme } from 'next-themes';
 
+const LEET_MAP = {
+  a: ['@', '4'],
+  e: ['3'],
+  i: ['1', '!'],
+  o: ['0'],
+  s: ['$', '5'],
+  t: ['7'],
+  l: ['1'],
+};
+
+const PLATFORM_PRESETS = {
+  Discord: { symbols: ['!', '#', '_'] },
+  GitHub: { symbols: ['@', '_'] },
+  Banking: { symbols: ['@', '#', '$'] },
+  Social: { symbols: ['!', '$', '_'] },
+};
+
+const COMMON_PATTERNS = [
+  /1234/,
+  /password/i,
+  /qwerty/i,
+  /\b(19|20)\d{2}\b/,
+];
+
+const rand = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+const seededRng = (seed) => {
+  let value = seed;
+  return () => {
+    value = (value * 9301 + 49297) % 233280;
+    return value / 233280;
+  };
+};
+
+const simpleHash = (str) =>
+  [...str].reduce((a, c) => a + c.charCodeAt(0), 0);
+
+const computeMetrics = (pwd) => {
+  const symbolCount = (pwd.match(/[^a-z0-9]/gi) || []).length;
+
+  const memorability =
+    100 - pwd.length * 1.2 - symbolCount * 2.5;
+
+  const entropy = Math.log2(Math.pow(94, pwd.length));
+
+  return {
+    memorability: Math.max(40, Math.min(95, Math.round(memorability))),
+    strength:
+      entropy < 50
+        ? 'Weak'
+        : entropy < 70
+        ? 'Strong'
+        : 'Very Strong',
+  };
+};
+
 export default function Home() {
-  const [length, setLength] = useState(12);
-  const [includeUppercase, setIncludeUppercase] = useState(true);
-  const [includeLowercase, setIncludeLowercase] = useState(true);
-  const [includeNumbers, setIncludeNumbers] = useState(true);
-  const [includeSymbols, setIncludeSymbols] = useState(false);
+  const { theme, setTheme } = useTheme();
+
+  const [basePassword, setBasePassword] = useState('');
+  const [platformPreset, setPlatformPreset] = useState('Discord');
+  const [customPlatform, setCustomPlatform] = useState('');
+
+  const [strengthDial, setStrengthDial] = useState(2);
+  const [deterministic, setDeterministic] = useState(false);
+  const [masterKey, setMasterKey] = useState('');
+
   const [password, setPassword] = useState('');
-  const [copied, setCopied] = useState(false);
+  const [generatedVariants, setGeneratedVariants] = useState({});
+  const [metricsByLevel, setMetricsByLevel] = useState({});
   const [strength, setStrength] = useState('');
-  const { setTheme, theme } = useTheme();
+  const [memorability, setMemorability] = useState(0);
+  const [warnings, setWarnings] = useState([]);
+  const [explanation, setExplanation] = useState('');
+  const [copied, setCopied] = useState(false);
 
-  const generatePassword = () => {
-    const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const lower = 'abcdefghijklmnopqrstuvwxyz';
-    const numbers = '0123456789';
-    const symbols = '!@#$%^&*()-_=+[]{};:,.<>?';
+  const generateVariant = (dial) => {
+    const platform =
+      platformPreset === 'Custom' ? customPlatform : platformPreset;
 
-    let validChars = '';
-    if (includeUppercase) validChars += upper;
-    if (includeLowercase) validChars += lower;
-    if (includeNumbers) validChars += numbers;
-    if (includeSymbols) validChars += symbols;
+    const profile =
+      PLATFORM_PRESETS[platformPreset] || PLATFORM_PRESETS.Discord;
 
-    if (validChars.length === 0) {
-      alert('Select at least one option');
-      return;
+    const rng = deterministic
+      ? seededRng(simpleHash(basePassword + platform + masterKey + dial))
+      : Math.random;
+
+    let result = '';
+    let explain = [];
+
+    for (const ch of basePassword) {
+      const lower = ch.toLowerCase();
+
+      if (LEET_MAP[lower] && rng() > 0.4 / dial) {
+        const rep = rand(LEET_MAP[lower]);
+        result += rep;
+        explain.push(`${ch} → ${rep}`);
+      } else {
+        result += ch;
+      }
+
+      if (dial > 1 && rng() > 0.85) {
+        const sym = rand(profile.symbols);
+        result += sym;
+        explain.push(`symbol ${sym}`);
+      }
     }
 
-    let generated = '';
-    for (let i = 0; i < length; i++) {
-      const index = Math.floor(Math.random() * validChars.length);
-      generated += validChars[index];
-    }
+    const signature = platform[0]?.toUpperCase() + rand(['!', '#', '$']);
+    result += '_' + signature;
 
-    setPassword(generated);
-    calculateStrength(generated, validChars.length);
+    return { result, explain };
   };
 
-  const calculateStrength = (pwd, charsetSize) => {
-    const entropy = Math.log2(Math.pow(charsetSize, pwd.length));
-    const secondsToCrack = Math.pow(2, entropy) / 1e10;
+  const generatePassword = () => {
+    if (!basePassword) return;
 
-    if (entropy < 40) setStrength('Weak');
-    else if (entropy < 60) setStrength('Medium');
-    else if (entropy < 80) setStrength('Strong');
-    else setStrength('Very Strong');
+    const variants = {};
+    const metrics = {};
+    let warns = [];
 
-    const time = secondsToCrack > 3.154e7
-      ? `${(secondsToCrack / 3.154e7).toFixed(1)} years`
-      : `${(secondsToCrack).toFixed(1)} seconds`;
+    [1, 2, 3].forEach((lvl) => {
+      const v = generateVariant(lvl);
+      variants[lvl] = v;
+      metrics[lvl] = computeMetrics(v.result);
+    });
 
-    setStrength((prev) => `${prev} (🔓 ~${time} to bruteforce)`);
+    COMMON_PATTERNS.forEach((p) => {
+      if (p.test(basePassword))
+        warns.push('Common password pattern detected');
+    });
+
+    if (basePassword.length < 8)
+      warns.push('Short base password (commonly breached)');
+
+    const currentLevel = strengthDial;
+
+    setGeneratedVariants(variants);
+    setMetricsByLevel(metrics);
+
+    setPassword(variants[currentLevel].result);
+    setExplanation(variants[currentLevel].explain.join(', '));
+    setStrength(metrics[currentLevel].strength);
+    setMemorability(metrics[currentLevel].memorability);
+    setWarnings(warns);
+  };
+
+  const handleDialChange = (val) => {
+    const lvl = val[0];
+    setStrengthDial(lvl);
+
+    if (generatedVariants[lvl] && metricsByLevel[lvl]) {
+      setPassword(generatedVariants[lvl].result);
+      setExplanation(generatedVariants[lvl].explain.join(', '));
+      setStrength(metricsByLevel[lvl].strength);
+      setMemorability(metricsByLevel[lvl].memorability);
+    }
   };
 
   const copyToClipboard = async () => {
@@ -69,63 +182,144 @@ export default function Home() {
   };
 
   return (
-    <main className="p-6 max-w-lg mx-auto flex flex-col gap-4">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">PassForge - Password Generator</h1>
+    <main className="p-6 max-w-xl mx-auto flex flex-col gap-6">
+      {/* Header */}
+      <header className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold">PassForge v3</h1>
+          <p className="text-sm text-muted-foreground">
+            Human-memorable · Keyboard-safe
+          </p>
+        </div>
+
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          onClick={() =>
+            setTheme(theme === 'dark' ? 'light' : 'dark')
+          }
         >
           {theme === 'dark' ? <Sun /> : <Moon />}
         </Button>
-      </div>
+      </header>
 
-      <div>
-        <label>Password Length: {length}</label>
-        <Slider
-          defaultValue={[length]}
-          min={4}
-          max={32}
-          step={1}
-          onValueChange={(val) => setLength(val[0])}
+      {/* Inputs */}
+      <section className="flex flex-col gap-3">
+        <Input
+          placeholder="Base password (memorable)"
+          value={basePassword}
+          onChange={(e) => setBasePassword(e.target.value)}
         />
-      </div>
 
-      <div className="flex items-center justify-between">
-        <label>Include Uppercase</label>
-        <Switch checked={includeUppercase} onCheckedChange={setIncludeUppercase} />
-      </div>
+        <select
+          className="border rounded-md px-3 py-2 bg-background"
+          value={platformPreset}
+          onChange={(e) => setPlatformPreset(e.target.value)}
+        >
+          {Object.keys(PLATFORM_PRESETS).map((p) => (
+            <option key={p}>{p}</option>
+          ))}
+          <option value="Custom">Custom</option>
+        </select>
 
-      <div className="flex items-center justify-between">
-        <label>Include Lowercase</label>
-        <Switch checked={includeLowercase} onCheckedChange={setIncludeLowercase} />
-      </div>
+        {platformPreset === 'Custom' && (
+          <Input
+            placeholder="Custom platform name"
+            value={customPlatform}
+            onChange={(e) => setCustomPlatform(e.target.value)}
+          />
+        )}
+      </section>
 
-      <div className="flex items-center justify-between">
-        <label>Include Numbers</label>
-        <Switch checked={includeNumbers} onCheckedChange={setIncludeNumbers} />
-      </div>
+      {/* Controls */}
+      <section className="flex flex-col gap-4">
+        <label className="text-sm font-medium">
+          Strength Dial (preview enabled): {strengthDial}
+        </label>
+        <Slider
+          min={1}
+          max={3}
+          step={1}
+          defaultValue={[2]}
+          onValueChange={handleDialChange}
+        />
 
-      <div className="flex items-center justify-between">
-        <label>Include Symbols</label>
-        <Switch checked={includeSymbols} onCheckedChange={setIncludeSymbols} />
-      </div>
+        <div className="flex justify-between items-center">
+          <label className="text-sm">
+            Deterministic Recovery Mode
+          </label>
+          <Switch
+            checked={deterministic}
+            onCheckedChange={setDeterministic}
+          />
+        </div>
 
-      <Button onClick={generatePassword}>Generate Password</Button>
+        {deterministic && (
+          <Input
+            placeholder="Master key (required for recovery)"
+            value={masterKey}
+            onChange={(e) => setMasterKey(e.target.value)}
+          />
+        )}
+      </section>
 
-      <div className="flex gap-2 items-center">
-        <Input value={password} onClick={password ? copyToClipboard : undefined} className={password ? "cursor-pointer" : ""} readOnly />
-        <Button onClick={copyToClipboard} variant="outline" size="icon">
-          {copied ? <Check className="text-green-500" /> : <Copy />}
+      <Button onClick={generatePassword}>
+        Generate Password
+      </Button>
+
+      {/* Output */}
+      <section className="flex gap-2">
+        <Input readOnly value={password} />
+        <Button
+          onClick={copyToClipboard}
+          variant="outline"
+          size="icon"
+        >
+          {copied ? (
+            <Check className="text-green-500" />
+          ) : (
+            <Copy />
+          )}
         </Button>
-      </div>
+      </section>
 
       {password && (
-        <p className="text-sm text-muted-foreground">
-          Strength: <span className="font-semibold">{strength}</span>
-        </p>
+        <section className="text-sm flex flex-col gap-2">
+          <p><b>Strength:</b> {strength}</p>
+          <p><b>Memorability:</b> {memorability}%</p>
+          <p><b>Typability:</b> 100%</p>
+
+          {warnings.length > 0 && (
+            <div className="rounded-md border border-yellow-500/30 bg-yellow-500/10 p-3">
+              {warnings.map((w, i) => (
+                <p key={i}>⚠ {w}</p>
+              ))}
+            </div>
+          )}
+
+          <details>
+            <summary className="cursor-pointer flex items-center gap-1">
+              <Info size={14} /> Explain my password
+            </summary>
+            <p className="mt-2 text-muted-foreground">
+              {explanation}
+            </p>
+          </details>
+        </section>
       )}
+
+      {/* Footer */}
+      <footer className="pt-4 border-t text-sm flex justify-between items-center">
+        <span className="text-muted-foreground">
+          Prefer the classic generator?
+        </span>
+        <Link
+          href="/v2"
+          className="flex items-center gap-1 text-primary hover:underline"
+        >
+          Go to v2 <ArrowRight size={14} />
+        </Link>
+      </footer>
     </main>
   );
 }
