@@ -46,7 +46,7 @@ export const metadata = {
     siteName: 'PassForge',
     images: [
       {
-        url: 'https://passforge.callcon.me/og-image.png', // You can upload this image to /public
+        url: '/og-image.png', // You can upload this image to /public
         width: 1200,
         height: 630,
         alt: 'PassForge Password Generator',
