@@ -112,6 +112,71 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+.prose {
+  --tw-prose-body: #d1d5db;
+  --tw-prose-headings: #f9fafb;
+  --tw-prose-links: #60a5fa;
+  --tw-prose-bold: #f3f4f6;
+  --tw-prose-bullets: #9ca3af;
+  --tw-prose-hr: #1f2933;
+  --tw-prose-quotes: #e5e7eb;
+  --tw-prose-quote-borders: #374151;
+  --tw-prose-code: #93c5fd;
+  --tw-prose-pre-bg: #020617;
+}
+
+/* PassForge / Policy markdown cleanup */
+.prose-policy {
+  line-height: 1.75;
+  font-size: 0.95rem;
+}
+
+/* Headings */
+.prose-policy h1 {
+  margin-bottom: 1.25rem;
+}
+
+.prose-policy h2 {
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid #1f2937;
+}
+
+.prose-policy h3 {
+  margin-top: 1.75rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Paragraph spacing */
+.prose-policy p {
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Lists — THIS is the biggest win */
+.prose-policy ul {
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding-left: 1.5rem;
+}
+
+.prose-policy li {
+  margin-top: 0.35rem;
+}
+
+/* Strong text should stand out */
+.prose-policy strong {
+  color: #f9fafb;
+  font-weight: 600;
+}
+
+/* Horizontal rules */
+.prose-policy hr {
+  margin: 2.5rem 0;
+  border-color: #1f2937;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
