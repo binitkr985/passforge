@@ -49,6 +49,32 @@ Instead of generating random strings, v3 **derives secure passwords from user-me
 
 ---
 
+## Browser Extension (PassForge v4)
+
+PassForge v4 is the official browser extension version of PassForge.
+
+### Key differences from the web version
+- Inserts passwords directly into password fields
+- Works with browser password managers
+- Includes a right-click generator for quick passwords
+- Fully offline and privacy-preserving
+
+### Supported Browsers
+- Chrome
+- Edge
+- Brave
+- Firefox
+
+### Security & Privacy
+- No data collection
+- No analytics
+- No storage
+- No auto-fill without user action
+
+The extension is yet to be published.
+
+---
+
 ## ✨ Key Features (v3)
 
 * 🧠 **Human-Memorable Password Derivation**
