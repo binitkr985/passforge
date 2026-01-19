@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 
+
 const LEET_MAP = {
   a: ['@', '4'],
   e: ['3'],
@@ -40,7 +41,6 @@ const COMMON_PATTERNS = [
   /\b(19|20)\d{2}\b/,
 ];
 
-const rand = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
 const seededRng = (seed) => {
   let value = seed;
@@ -52,6 +52,10 @@ const seededRng = (seed) => {
 
 const simpleHash = (str) =>
   [...str].reduce((a, c) => a + c.charCodeAt(0), 0);
+
+const randFromRng = (arr, rng) =>
+  arr[Math.floor(rng() * arr.length)];
+
 
 const computeMetrics = (pwd) => {
   const symbolCount = (pwd.match(/[^a-z0-9]/gi) || []).length;
@@ -71,6 +75,7 @@ const computeMetrics = (pwd) => {
         : 'Very Strong',
   };
 };
+
 
 export default function Home() {
   const { theme, setTheme } = useTheme();
@@ -92,6 +97,7 @@ export default function Home() {
   const [explanation, setExplanation] = useState('');
   const [copied, setCopied] = useState(false);
 
+
   const generateVariant = (dial) => {
     const platform =
       platformPreset === 'Custom' ? customPlatform : platformPreset;
@@ -99,8 +105,15 @@ export default function Home() {
     const profile =
       PLATFORM_PRESETS[platformPreset] || PLATFORM_PRESETS.Discord;
 
+    const seedSource = (
+      basePassword.trim().toLowerCase() +
+      platform.trim().toLowerCase() +
+      masterKey +
+      dial
+    );
+
     const rng = deterministic
-      ? seededRng(simpleHash(basePassword + platform + masterKey + dial))
+      ? seededRng(simpleHash(seedSource))
       : Math.random;
 
     let result = '';
@@ -110,7 +123,7 @@ export default function Home() {
       const lower = ch.toLowerCase();
 
       if (LEET_MAP[lower] && rng() > 0.4 / dial) {
-        const rep = rand(LEET_MAP[lower]);
+        const rep = randFromRng(LEET_MAP[lower], rng);
         result += rep;
         explain.push(`${ch} → ${rep}`);
       } else {
@@ -118,17 +131,21 @@ export default function Home() {
       }
 
       if (dial > 1 && rng() > 0.85) {
-        const sym = rand(profile.symbols);
+        const sym = randFromRng(profile.symbols, rng);
         result += sym;
         explain.push(`symbol ${sym}`);
       }
     }
 
-    const signature = platform[0]?.toUpperCase() + rand(['!', '#', '$']);
+    const signature =
+      platform[0]?.toUpperCase() +
+      randFromRng(['!', '#', '$'], rng);
+
     result += '_' + signature;
 
     return { result, explain };
   };
+
 
   const generatePassword = () => {
     if (!basePassword) return;
@@ -163,6 +180,7 @@ export default function Home() {
     setWarnings(warns);
   };
 
+
   const handleDialChange = (val) => {
     const lvl = val[0];
     setStrengthDial(lvl);
@@ -175,15 +193,16 @@ export default function Home() {
     }
   };
 
+
   const copyToClipboard = async () => {
     await navigator.clipboard.writeText(password);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };
 
+
   return (
     <main className="p-6 max-w-xl mx-auto flex flex-col gap-6">
-      {/* Header */}
       <header className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold">PassForge v3</h1>
@@ -203,7 +222,6 @@ export default function Home() {
         </Button>
       </header>
 
-      {/* Inputs */}
       <section className="flex flex-col gap-3">
         <Input
           placeholder="Base password (memorable)"
@@ -231,7 +249,6 @@ export default function Home() {
         )}
       </section>
 
-      {/* Controls */}
       <section className="flex flex-col gap-4">
         <label className="text-sm font-medium">
           Strength Dial (preview enabled): {strengthDial}
@@ -267,7 +284,6 @@ export default function Home() {
         Generate Password
       </Button>
 
-      {/* Output */}
       <section className="flex gap-2">
         <Input readOnly value={password} />
         <Button
@@ -308,17 +324,22 @@ export default function Home() {
         </section>
       )}
 
-      {/* Footer */}
-      <footer className="pt-4 border-t text-sm flex justify-between items-center">
-        <span className="text-muted-foreground">
-          Prefer the classic generator?
-        </span>
-        <Link
-          href="/v2"
-          className="flex items-center gap-1 text-primary hover:underline"
-        >
-          Go to v2 <ArrowRight size={14} />
-        </Link>
+      <footer className="pt-4 border-t text-sm flex flex-col gap-2">
+        <div className="flex justify-between items-center">
+          <span className="text-muted-foreground">
+            Prefer the classic generator?
+          </span>
+          <Link
+            href="/v2"
+            className="flex items-center gap-1 text-primary hover:underline"
+          >
+            Go to v2 <ArrowRight size={14} />
+          </Link>
+        </div>
+
+        <p className="text-xs text-muted-foreground text-center">
+          Passwords never leave your device
+        </p>
       </footer>
     </main>
   );
