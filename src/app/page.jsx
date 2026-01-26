@@ -202,7 +202,7 @@ export default function Home() {
 
 
   return (
-    <main className="p-6 max-w-xl mx-auto flex flex-col gap-6">
+    <main className="p-6 max-w-xl mx-auto flex flex-col gap-6 min-h-screen">
       <header className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold">PassForge v3</h1>
@@ -324,7 +324,7 @@ export default function Home() {
         </section>
       )}
 
-      <footer className="pt-4 border-t text-sm flex flex-col gap-2">
+      <footer className="mt-auto pt-4 border-t text-sm flex flex-col gap-2">
         <div className="flex justify-between items-center">
           <span className="text-muted-foreground">
             Prefer the classic generator?
@@ -338,7 +338,7 @@ export default function Home() {
         </div>
 
         <p className="text-xs text-muted-foreground text-center">
-          Passwords never leave your device
+          Made with <span className="text-red-500">♥</span> by binitkr · Passwords never leave your device
         </p>
       </footer>
     </main>
